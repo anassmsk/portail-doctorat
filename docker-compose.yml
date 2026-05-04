@@ -1,0 +1,222 @@
+version: '3.8'
+
+services:
+
+  # ─── Infrastructure ───────────────────────────────────────────
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+    networks:
+      - doctorat-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    depends_on:
+      config-server:
+        condition: service_healthy
+    networks:
+      - doctorat-net
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    networks:
+      - doctorat-net
+
+  # ─── Bases de données ─────────────────────────────────────────
+
+  db-utilisateurs:
+    image: postgres:15-alpine
+    container_name: db-utilisateurs
+    environment:
+      POSTGRES_DB: db_utilisateurs
+      POSTGRES_USER: doctorat
+      POSTGRES_PASSWORD: doctorat123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-utilisateurs:/var/lib/postgresql/data
+    networks:
+      - doctorat-net
+
+  db-inscriptions:
+    image: postgres:15-alpine
+    container_name: db-inscriptions
+    environment:
+      POSTGRES_DB: db_inscriptions
+      POSTGRES_USER: doctorat
+      POSTGRES_PASSWORD: doctorat123
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata-inscriptions:/var/lib/postgresql/data
+    networks:
+      - doctorat-net
+
+  db-soutenances:
+    image: postgres:15-alpine
+    container_name: db-soutenances
+    environment:
+      POSTGRES_DB: db_soutenances
+      POSTGRES_USER: doctorat
+      POSTGRES_PASSWORD: doctorat123
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata-soutenances:/var/lib/postgresql/data
+    networks:
+      - doctorat-net
+
+  db-notifications:
+    image: postgres:15-alpine
+    container_name: db-notifications
+    environment:
+      POSTGRES_DB: db_notifications
+      POSTGRES_USER: doctorat
+      POSTGRES_PASSWORD: doctorat123
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata-notifications:/var/lib/postgresql/data
+    networks:
+      - doctorat-net
+
+  # ─── Kafka ────────────────────────────────────────────────────
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - doctorat-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - doctorat-net
+
+  # ─── Micro-services ───────────────────────────────────────────
+
+  service-utilisateurs:
+    build: ./service-utilisateurs
+    container_name: service-utilisateurs
+    ports:
+      - "8081:8081"
+    depends_on:
+      - db-utilisateurs
+      - eureka-server
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-utilisateurs:5432/db_utilisateurs
+      - SPRING_DATASOURCE_USERNAME=doctorat
+      - SPRING_DATASOURCE_PASSWORD=doctorat123
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
+    networks:
+      - doctorat-net
+
+  service-inscriptions:
+    build: ./service-inscriptions
+    container_name: service-inscriptions
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db-inscriptions
+      - eureka-server
+      - kafka
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-inscriptions:5432/db_inscriptions
+      - SPRING_DATASOURCE_USERNAME=doctorat
+      - SPRING_DATASOURCE_PASSWORD=doctorat123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - doctorat-net
+
+  service-soutenances:
+    build: ./service-soutenances
+    container_name: service-soutenances
+    ports:
+      - "8083:8083"
+    depends_on:
+      - db-soutenances
+      - eureka-server
+      - kafka
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-soutenances:5432/db_soutenances
+      - SPRING_DATASOURCE_USERNAME=doctorat
+      - SPRING_DATASOURCE_PASSWORD=doctorat123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - doctorat-net
+
+  service-notifications:
+    build: ./service-notifications
+    container_name: service-notifications
+    ports:
+      - "8084:8084"
+    depends_on:
+      - db-notifications
+      - eureka-server
+      - kafka
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-notifications:5432/db_notifications
+      - SPRING_DATASOURCE_USERNAME=doctorat
+      - SPRING_DATASOURCE_PASSWORD=doctorat123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - doctorat-net
+
+  # ─── Frontend ─────────────────────────────────────────────────
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - doctorat-net
+
+networks:
+  doctorat-net:
+    driver: bridge
+
+volumes:
+  pgdata-utilisateurs:
+  pgdata-inscriptions:
+  pgdata-soutenances:
+  pgdata-notifications:
