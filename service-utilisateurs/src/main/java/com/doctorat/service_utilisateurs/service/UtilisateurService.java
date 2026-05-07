@@ -2,18 +2,22 @@ package com.doctorat.service_utilisateurs.service;
 
 import com.doctorat.service_utilisateurs.dto.RegisterRequest;
 import com.doctorat.service_utilisateurs.entity.Utilisateur;
+import com.doctorat.service_utilisateurs.entity.Utilisateur.Role;
 import com.doctorat.service_utilisateurs.repository.UtilisateurRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class UtilisateurService {
 
     private final UtilisateurRepository repository;
     private final PasswordEncoder passwordEncoder;
+
+    public UtilisateurService(UtilisateurRepository repository, PasswordEncoder passwordEncoder) {
+        this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public Utilisateur creerUtilisateur(RegisterRequest request) {
         if (repository.existsByEmail(request.getEmail())) {
@@ -24,7 +28,8 @@ public class UtilisateurService {
         u.setPrenom(request.getPrenom());
         u.setEmail(request.getEmail());
         u.setMotDePasse(passwordEncoder.encode(request.getMotDePasse()));
-        u.setRole(request.getRole() != null ? request.getRole() : Utilisateur.Role.DOCTORANT);
+        Role role = request.getRole() != null ? request.getRole() : Role.DOCTORANT;
+        u.setRole(role);
         return repository.save(u);
     }
 
