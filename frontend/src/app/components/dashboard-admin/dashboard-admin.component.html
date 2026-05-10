@@ -1,0 +1,70 @@
+<div class="container mt-4">
+  <h2>🛡️ Administration</h2>
+
+  @if (message) {
+    <div class="alert alert-success">{{ message }}</div>
+  }
+
+  <!-- Inscriptions -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">📋 Toutes les Inscriptions</h5>
+    </div>
+    <div class="card-body">
+      @if (inscriptions.length === 0) {
+        <p class="text-muted">Aucune inscription.</p>
+      }
+      @for (i of inscriptions; track i.id) {
+        <div class="border rounded p-3 mb-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ i.nomDoctorant }}</strong> — {{ i.sujetThese }}<br/>
+              <small class="text-muted">{{ i.emailDoctorant }} | {{ i.dateInscription }}</small>
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="badge"
+                [class.bg-warning]="i.statut === 'EN_ATTENTE'"
+                [class.bg-info]="i.statut === 'VALIDEE_DIRECTEUR'"
+                [class.bg-success]="i.statut === 'VALIDEE_ADMIN'"
+                [class.bg-danger]="i.statut === 'REJETEE'">
+                {{ i.statut }}
+              </span>
+              @if (i.statut === 'VALIDEE_DIRECTEUR') {
+                <button class="btn btn-success btn-sm"
+                  (click)="validerInscription(i.id)">Valider</button>
+                <button class="btn btn-danger btn-sm"
+                  (click)="rejeterInscription(i.id)">Rejeter</button>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Soutenances -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">🎓 Toutes les Soutenances</h5>
+    </div>
+    <div class="card-body">
+      @if (soutenances.length === 0) {
+        <p class="text-muted">Aucune soutenance.</p>
+      }
+      @for (s of soutenances; track s.id) {
+        <div class="border rounded p-3 mb-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{{ s.nomDoctorant }}</strong> — {{ s.sujetThese }}<br/>
+              <small class="text-muted">Statut : {{ s.statut }}</small>
+            </div>
+            @if (s.statut === 'JURY_PROPOSE') {
+              <button class="btn btn-success btn-sm"
+                (click)="validerSoutenance(s.id)">Valider</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

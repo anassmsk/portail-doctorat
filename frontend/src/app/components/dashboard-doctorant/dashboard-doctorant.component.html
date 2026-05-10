@@ -1,0 +1,87 @@
+<div class="container mt-4">
+  <h2>👨‍🎓 Espace Doctorant</h2>
+  <p class="text-muted">Bienvenue, {{ authService.getEmail() }}</p>
+
+  @if (message) {
+    <div class="alert alert-success">{{ message }}</div>
+  }
+
+  <!-- Inscriptions -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">📋 Mes Inscriptions</h5>
+      <button class="btn btn-primary btn-sm"
+        (click)="afficherFormInscription = !afficherFormInscription">
+        + Nouvelle inscription
+      </button>
+    </div>
+    <div class="card-body">
+
+      @if (afficherFormInscription) {
+        <div class="border rounded p-3 mb-3 bg-light">
+          <h6>Nouvelle inscription</h6>
+          <div class="mb-2">
+            <input class="form-control mb-2" placeholder="Nom complet"
+              [(ngModel)]="nouvelleInscription.nomDoctorant" />
+            <input class="form-control mb-2" placeholder="Sujet de thèse"
+              [(ngModel)]="nouvelleInscription.sujetThese" />
+            <input class="form-control mb-2" placeholder="Email directeur"
+              [(ngModel)]="nouvelleInscription.directeurEmail" />
+            <input class="form-control mb-2" placeholder="Collaboration (optionnel)"
+              [(ngModel)]="nouvelleInscription.collaboration" />
+          </div>
+          <button class="btn btn-success btn-sm" (click)="soumettrInscription()">
+            Soumettre
+          </button>
+          <button class="btn btn-secondary btn-sm ms-2"
+            (click)="afficherFormInscription = false">
+            Annuler
+          </button>
+        </div>
+      }
+
+      @if (inscriptions.length === 0) {
+        <p class="text-muted">Aucune inscription trouvée.</p>
+      }
+      @for (i of inscriptions; track i.id) {
+        <div class="border rounded p-3 mb-2">
+          <div class="d-flex justify-content-between">
+            <strong>{{ i.sujetThese }}</strong>
+            <span class="badge"
+              [class.bg-warning]="i.statut === 'EN_ATTENTE'"
+              [class.bg-info]="i.statut === 'VALIDEE_DIRECTEUR'"
+              [class.bg-success]="i.statut === 'VALIDEE_ADMIN'"
+              [class.bg-danger]="i.statut === 'REJETEE'">
+              {{ i.statut }}
+            </span>
+          </div>
+          <small class="text-muted">Directeur : {{ i.directeurEmail }}</small><br/>
+          <small class="text-muted">Date : {{ i.dateInscription }}</small>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Soutenances -->
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">🎓 Mes Soutenances</h5>
+    </div>
+    <div class="card-body">
+      @if (soutenances.length === 0) {
+        <p class="text-muted">Aucune soutenance trouvée.</p>
+      }
+      @for (s of soutenances; track s.id) {
+        <div class="border rounded p-3 mb-2">
+          <div class="d-flex justify-content-between">
+            <strong>{{ s.sujetThese }}</strong>
+            <span class="badge bg-primary">{{ s.statut }}</span>
+          </div>
+          @if (s.dateSoutenance) {
+            <small class="text-muted">Date : {{ s.dateSoutenance }} — {{ s.lieu }}</small>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

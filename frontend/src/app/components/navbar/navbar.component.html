@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary px-4">
+  <a class="navbar-brand fw-bold" href="#">🎓 Portail Doctorat</a>
+
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav me-auto">
+      @if (authService.isLoggedIn()) {
+        @if (authService.getRole() === 'DOCTORANT') {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/doctorant">Mon Espace</a>
+          </li>
+        }
+        @if (authService.getRole() === 'DIRECTEUR_THESE') {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/directeur">Mes Dossiers</a>
+          </li>
+        }
+        @if (authService.getRole() === 'ADMIN') {
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/admin">Administration</a>
+          </li>
+        }
+      }
+    </ul>
+
+    <ul class="navbar-nav ms-auto">
+      @if (authService.isLoggedIn()) {
+        <li class="nav-item">
+          <span class="nav-link text-light">
+            👤 {{ authService.getEmail() }}
+          </span>
+        </li>
+        <li class="nav-item">
+          <button class="btn btn-outline-light btn-sm" (click)="logout()">
+            Déconnexion
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</nav>

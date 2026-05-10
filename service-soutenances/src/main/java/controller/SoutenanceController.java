@@ -9,10 +9,10 @@ import com.doctorat.service_soutenances.service.SoutenanceService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/soutenances")
 public class SoutenanceController {

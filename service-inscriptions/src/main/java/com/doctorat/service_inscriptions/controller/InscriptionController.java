@@ -5,17 +5,11 @@ import com.doctorat.service_inscriptions.entity.Inscription;
 import com.doctorat.service_inscriptions.service.InscriptionService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/inscriptions")
 public class InscriptionController {
@@ -32,18 +26,18 @@ public class InscriptionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Inscription>> toutes() {
+    public ResponseEntity<List<Inscription>> getAll() {
         return ResponseEntity.ok(service.toutes());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Inscription> parId(@PathVariable Long id) {
+    public ResponseEntity<Inscription> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.trouverParId(id));
     }
 
-    @GetMapping("/doctorant/{doctorantId}")
-    public ResponseEntity<List<Inscription>> parDoctorant(@PathVariable Long doctorantId) {
-        return ResponseEntity.ok(service.parDoctorant(doctorantId));
+    @GetMapping("/doctorant/{id}")
+    public ResponseEntity<List<Inscription>> parDoctorant(@PathVariable Long id) {
+        return ResponseEntity.ok(service.parDoctorant(id));
     }
 
     @GetMapping("/directeur/{email}")
