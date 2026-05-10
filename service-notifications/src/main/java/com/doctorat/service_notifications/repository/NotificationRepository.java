@@ -1,0 +1,10 @@
+package com.doctorat.service_notifications.repository;
+
+import com.doctorat.service_notifications.entity.Notification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
+    List<Notification> findByDestinataireEmail(String email);
+    List<Notification> findByDestinataireEmailAndLu(String email, boolean lu);
+}
